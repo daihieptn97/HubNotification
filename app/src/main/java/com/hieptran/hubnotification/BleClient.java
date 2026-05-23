@@ -16,12 +16,14 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ParcelUuid;
 import android.util.Log;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -38,6 +40,8 @@ public class BleClient {
     }
 
     private static final String TAG = "BleClient";
+    private static final String PREF_BLE = "car_hud_ble";
+    private static final String KEY_LAST_MAC = "last_mac";
 
     private static final UUID SERVICE_UUID = UUID.fromString(CarHudConstants.SERVICE_UUID);
     private static final UUID RX_UUID = UUID.fromString(CarHudConstants.CHAR_RX_UUID);
@@ -48,6 +52,7 @@ public class BleClient {
     private final StatusListener statusListener;
 
     private BluetoothLeScanner scanner;
+    private BluetoothAdapter bluetoothAdapter;
     private BluetoothGatt gatt;
     private BluetoothGattCharacteristic rxCharacteristic;
     private BluetoothDevice connectedDevice;
@@ -79,10 +84,21 @@ public class BleClient {
             notifyStatus("BLE: adapter disabled");
             return;
         }
+        bluetoothAdapter = adapter;
 
         scanner = adapter.getBluetoothLeScanner();
         if (scanner == null) {
             notifyStatus("BLE: scanner unavailable");
+            return;
+        }
+
+        if (tryConnectSavedDevice(adapter)) {
+            // Fallback to scan if direct reconnect cannot establish quickly.
+            mainHandler.postDelayed(() -> {
+                if (started && gatt == null && !isScanning) {
+                    startScanInternal();
+                }
+            }, 3500L);
             return;
         }
 
@@ -102,6 +118,7 @@ public class BleClient {
 
         rxCharacteristic = null;
         connectedDevice = null;
+        bluetoothAdapter = null;
         txQueue.clear();
         writeInFlight = false;
         notifyStatus("BLE: stopped");
@@ -159,6 +176,11 @@ public class BleClient {
 
     @SuppressLint("MissingPermission")
     private void connect(BluetoothDevice device) {
+        stopScanInternal();
+        if (gatt != null) {
+            gatt.close();
+            gatt = null;
+        }
         notifyStatus("BLE: connecting " + (device.getName() == null ? "device" : device.getName()));
         connectedDevice = device;
         gatt = device.connectGatt(appContext, false, gattCallback, BluetoothDevice.TRANSPORT_LE);
@@ -172,7 +194,57 @@ public class BleClient {
         if (!started) {
             return;
         }
-        mainHandler.postDelayed(this::startScanInternal, 2000L);
+        mainHandler.postDelayed(() -> {
+            if (!started) {
+                return;
+            }
+            if (bluetoothAdapter != null && tryConnectSavedDevice(bluetoothAdapter)) {
+                mainHandler.postDelayed(() -> {
+                    if (started && gatt == null && !isScanning) {
+                        startScanInternal();
+                    }
+                }, 3500L);
+                return;
+            }
+            startScanInternal();
+        }, 2000L);
+    }
+
+    @SuppressLint("MissingPermission")
+    private boolean tryConnectSavedDevice(BluetoothAdapter adapter) {
+        String savedMac = getSavedDeviceMac();
+        if (TextUtils.isEmpty(savedMac)) {
+            return false;
+        }
+
+        try {
+            BluetoothDevice device = adapter.getRemoteDevice(savedMac);
+            notifyStatus("BLE: try saved device " + savedMac);
+            connect(device);
+            return true;
+        } catch (IllegalArgumentException ex) {
+            clearSavedDeviceMac();
+            notifyStatus("BLE: invalid saved MAC, fallback scan");
+            return false;
+        }
+    }
+
+    private void saveDeviceMac(String mac) {
+        if (TextUtils.isEmpty(mac)) {
+            return;
+        }
+        SharedPreferences prefs = appContext.getSharedPreferences(PREF_BLE, Context.MODE_PRIVATE);
+        prefs.edit().putString(KEY_LAST_MAC, mac).apply();
+    }
+
+    private void clearSavedDeviceMac() {
+        SharedPreferences prefs = appContext.getSharedPreferences(PREF_BLE, Context.MODE_PRIVATE);
+        prefs.edit().remove(KEY_LAST_MAC).apply();
+    }
+
+    private String getSavedDeviceMac() {
+        SharedPreferences prefs = appContext.getSharedPreferences(PREF_BLE, Context.MODE_PRIVATE);
+        return prefs.getString(KEY_LAST_MAC, null);
     }
 
     @SuppressLint("MissingPermission")
@@ -200,6 +272,7 @@ public class BleClient {
         @Override
         public void onConnectionStateChange(BluetoothGatt g, int status, int newState) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
+                saveDeviceMac(g.getDevice() == null ? null : g.getDevice().getAddress());
                 notifyStatus("BLE: connected, requesting MTU 247");
                 g.requestMtu(247);
                 return;

@@ -66,6 +66,8 @@ public class MainActivity extends AppCompatActivity {
         txtBleStatus = findViewById(R.id.txtBleStatus);
         Button btnRequestPermissions = findViewById(R.id.btnRequestPermissions);
         Button btnOpenNotificationAccess = findViewById(R.id.btnOpenNotificationAccess);
+        Button btnManageNotificationApps = findViewById(R.id.btnManageNotificationApps);
+        Button btnOpenDebugLogs = findViewById(R.id.btnOpenDebugLogs);
         Button btnStartHud = findViewById(R.id.btnStartHud);
         Button btnStopHud = findViewById(R.id.btnStopHud);
         Button btnSendTestNav = findViewById(R.id.btnSendTestNav);
@@ -73,6 +75,14 @@ public class MainActivity extends AppCompatActivity {
         btnRequestPermissions.setOnClickListener(v -> requestRuntimePermissions());
         btnOpenNotificationAccess.setOnClickListener(v -> {
             Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
+            startActivity(intent);
+        });
+        btnManageNotificationApps.setOnClickListener(v -> {
+            Intent intent = new Intent(this, NotificationAppSettingsActivity.class);
+            startActivity(intent);
+        });
+        btnOpenDebugLogs.setOnClickListener(v -> {
+            Intent intent = new Intent(this, NotificationDebugLogActivity.class);
             startActivity(intent);
         });
         btnStartHud.setOnClickListener(v -> startHudService());

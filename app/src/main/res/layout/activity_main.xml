@@ -66,6 +66,20 @@
                 android:text="Open Notification Access Settings" />
 
             <Button
+                android:id="@+id/btnManageNotificationApps"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Manage Notification Apps" />
+
+            <Button
+                android:id="@+id/btnOpenDebugLogs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Open Notification Debug Logs" />
+
+            <Button
                 android:id="@+id/btnStartHud"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

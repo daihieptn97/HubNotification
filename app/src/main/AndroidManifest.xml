@@ -33,6 +33,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.HubNotification">
         <activity
+            android:name=".NotificationDebugLogActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".NotificationAppSettingsActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>

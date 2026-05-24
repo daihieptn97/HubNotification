@@ -88,7 +88,7 @@
                 android:layout_marginTop="8dp"
                 android:text="Manage Notification Apps" />
 
-            <Button
+            <Button android:visibility="gone"
                 android:id="@+id/btnOpenDebugLogs"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

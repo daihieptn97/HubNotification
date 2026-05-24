@@ -41,20 +41,23 @@ public class CarHudNotificationListener extends NotificationListenerService {
         }
 
         if ("com.google.android.apps.maps".equals(packageName)) {
-            handleMapsNotification(rawTitle, rawText, rawSubText);
-            NotificationDebugLogStore.append(this, packageName, rawTitle, rawText, rawSubText, "handled_maps");
+            boolean sent = handleMapsNotification(rawTitle, rawText, rawSubText);
+            NotificationDebugLogStore.append(this, packageName, rawTitle, rawText, rawSubText,
+                    sent ? "sent_nav" : "maps_parse_failed");
             return;
         }
 
         if (isDialerPackage(packageName)) {
-            handleCallNotification(rawTitle, rawText, rawSubText);
-            NotificationDebugLogStore.append(this, packageName, rawTitle, rawText, rawSubText, "handled_call");
+            boolean sent = handleCallNotification(rawTitle, rawText, rawSubText);
+            NotificationDebugLogStore.append(this, packageName, rawTitle, rawText, rawSubText,
+                    sent ? "sent_call" : "call_empty");
             return;
         }
 
         if (isMessagePackage(packageName)) {
-            handleMessageNotification(rawTitle, rawText);
-            NotificationDebugLogStore.append(this, packageName, rawTitle, rawText, rawSubText, "handled_message");
+            boolean sent = handleMessageNotification(rawTitle, rawText);
+            NotificationDebugLogStore.append(this, packageName, rawTitle, rawText, rawSubText,
+                    sent ? "sent_message" : "message_empty");
             return;
         }
 
@@ -71,14 +74,16 @@ public class CarHudNotificationListener extends NotificationListenerService {
         }
     }
 
-        private void handleMapsNotification(String title, String text, String subText) {
+        private boolean handleMapsNotification(String title, String text, String subText) {
         GoogleMapsNavParser.NavInfo navInfo = GoogleMapsNavParser.parse(title, text, subText);
         if (navInfo != null) {
             CarHudBus.publishNav(navInfo);
+            return true;
         }
+        return false;
     }
 
-        private void handleCallNotification(String title, String text, String person) {
+        private boolean handleCallNotification(String title, String text, String person) {
 
         String name = !TextUtils.isEmpty(title) ? title : person;
         if (TextUtils.isEmpty(name)) {
@@ -87,17 +92,19 @@ public class CarHudNotificationListener extends NotificationListenerService {
         String phone = !TextUtils.isEmpty(text) ? text : "";
 
         CarHudBus.publishCall(name, phone);
+        return true;
     }
 
-        private void handleMessageNotification(String sender, String body) {
+        private boolean handleMessageNotification(String sender, String body) {
 
         if (TextUtils.isEmpty(sender) && TextUtils.isEmpty(body)) {
-            return;
+            return false;
         }
         if (TextUtils.isEmpty(sender)) {
             sender = "Unknown";
         }
         CarHudBus.publishSms(sender, body == null ? "" : body);
+        return true;
     }
 
     private boolean isDialerPackage(String packageName) {

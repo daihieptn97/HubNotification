@@ -80,6 +80,7 @@ public class CarHudService extends Service {
         bleClient = new BleClient(this, status -> {
             Intent statusIntent = new Intent(CarHudConstants.ACTION_STATUS_UPDATE);
             statusIntent.putExtra(CarHudConstants.EXTRA_BLE_STATUS, status);
+            statusIntent.putExtra(CarHudConstants.EXTRA_BLE_CONNECTED, inferConnected(status));
             sendBroadcast(statusIntent);
         });
         CarHudBus.init(bleClient);
@@ -97,6 +98,14 @@ public class CarHudService extends Service {
 
         if (CarHudConstants.ACTION_SEND_TEST_NAV.equals(action)) {
             CarHudBus.sendRaw("{\"t\":\"nav\",\"arr\":\"right\",\"d\":150,\"u\":\"m\",\"s\":\"Le Loi\"}");
+            return START_STICKY;
+        }
+
+        if (CarHudConstants.ACTION_SEND_TEST_PAYLOAD.equals(action)) {
+            String payload = intent != null ? intent.getStringExtra(CarHudConstants.EXTRA_TEST_PAYLOAD) : null;
+            if (payload != null && !payload.trim().isEmpty()) {
+                CarHudBus.sendRaw(payload);
+            }
             return START_STICKY;
         }
 
@@ -180,6 +189,14 @@ public class CarHudService extends Service {
 
     private boolean hasPermission(String permission) {
         return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private boolean inferConnected(String status) {
+        if (status == null) {
+            return false;
+        }
+        String lower = status.toLowerCase();
+        return lower.contains("ready") || (lower.contains("connected") && !lower.contains("disconnected"));
     }
 
     @Nullable

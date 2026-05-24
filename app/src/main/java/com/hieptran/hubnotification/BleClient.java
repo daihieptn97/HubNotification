@@ -129,6 +129,9 @@ public class BleClient {
             return;
         }
 
+        Log.d(TAG, "TX " + json);
+        NotificationDebugLogStore.appendTx(appContext, json);
+
         byte[] data = json.getBytes(StandardCharsets.UTF_8);
         if (data.length > 240) {
             Log.w(TAG, "Payload too large: " + data.length);

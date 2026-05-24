@@ -29,7 +29,10 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
     private TextView txtPermissionStatus;
     private TextView txtNotificationAccessStatus;
+    private TextView txtBleConnectedStatus;
     private TextView txtBleStatus;
+    private TextView txtBleTimeline;
+    private final StringBuilder bleTimeline = new StringBuilder();
 
     private final ActivityResultLauncher<String[]> permissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
@@ -45,6 +48,9 @@ public class MainActivity extends AppCompatActivity {
             String bleStatus = intent.getStringExtra(CarHudConstants.EXTRA_BLE_STATUS);
             if (!TextUtils.isEmpty(bleStatus)) {
                 txtBleStatus.setText(bleStatus);
+                boolean connected = intent.getBooleanExtra(CarHudConstants.EXTRA_BLE_CONNECTED, false);
+                txtBleConnectedStatus.setText(connected ? "BLE connected: YES" : "BLE connected: NO");
+                appendBleTimeline(bleStatus);
             }
         }
     };
@@ -63,11 +69,15 @@ public class MainActivity extends AppCompatActivity {
 
         txtPermissionStatus = findViewById(R.id.txtPermissionStatus);
         txtNotificationAccessStatus = findViewById(R.id.txtNotificationAccessStatus);
+        txtBleConnectedStatus = findViewById(R.id.txtBleConnectedStatus);
         txtBleStatus = findViewById(R.id.txtBleStatus);
+        txtBleTimeline = findViewById(R.id.txtBleTimeline);
         Button btnRequestPermissions = findViewById(R.id.btnRequestPermissions);
         Button btnOpenNotificationAccess = findViewById(R.id.btnOpenNotificationAccess);
         Button btnManageNotificationApps = findViewById(R.id.btnManageNotificationApps);
         Button btnOpenDebugLogs = findViewById(R.id.btnOpenDebugLogs);
+        Button btnOpenLogManager = findViewById(R.id.btnOpenLogManager);
+        Button btnOpenNavTest = findViewById(R.id.btnOpenNavTest);
         Button btnStartHud = findViewById(R.id.btnStartHud);
         Button btnStopHud = findViewById(R.id.btnStopHud);
         Button btnSendTestNav = findViewById(R.id.btnSendTestNav);
@@ -85,13 +95,23 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, NotificationDebugLogActivity.class);
             startActivity(intent);
         });
+        btnOpenLogManager.setOnClickListener(v -> {
+            Intent intent = new Intent(this, LogManagerActivity.class);
+            startActivity(intent);
+        });
+        btnOpenNavTest.setOnClickListener(v -> {
+            Intent intent = new Intent(this, NavTestActivity.class);
+            startActivity(intent);
+        });
         btnStartHud.setOnClickListener(v -> startHudService());
         btnStopHud.setOnClickListener(v -> stopHudService());
         btnSendTestNav.setOnClickListener(v -> sendTestNav());
 
         updatePermissionStatus();
         updateNotificationAccessStatus();
+        txtBleConnectedStatus.setText("BLE connected: NO");
         txtBleStatus.setText("BLE: idle");
+        txtBleTimeline.setText("No BLE events yet.");
     }
 
     @Override
@@ -188,5 +208,19 @@ public class MainActivity extends AppCompatActivity {
         txtNotificationAccessStatus.setText(enabled
                 ? "Notification access: enabled"
                 : "Notification access: disabled");
+    }
+
+    private void appendBleTimeline(String status) {
+        if (status == null || status.trim().isEmpty()) {
+            return;
+        }
+        if (bleTimeline.length() > 0) {
+            bleTimeline.insert(0, '\n');
+        }
+        bleTimeline.insert(0, status.trim());
+        if (bleTimeline.length() > 1200) {
+            bleTimeline.setLength(1200);
+        }
+        txtBleTimeline.setText(bleTimeline.toString());
     }
 }

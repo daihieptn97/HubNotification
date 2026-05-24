@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
@@ -38,9 +39,9 @@ public class NotificationAppSettingsActivity extends AppCompatActivity {
         txtStats = findViewById(R.id.txtStats);
         EditText edtSearch = findViewById(R.id.edtSearch);
         RadioGroup rgFilter = findViewById(R.id.rgFilter);
+        Button btnReloadApps = findViewById(R.id.btnReloadApps);
 
-        allApps.clear();
-        allApps.addAll(NotificationAppConfig.getInstalledApps(this));
+        reloadApps();
 
         edtSearch.addTextChangedListener(new TextWatcher() {
             @Override
@@ -69,7 +70,17 @@ public class NotificationAppSettingsActivity extends AppCompatActivity {
             renderAppSwitches();
         });
 
+        btnReloadApps.setOnClickListener(v -> {
+            reloadApps();
+            renderAppSwitches();
+        });
+
         renderAppSwitches();
+    }
+
+    private void reloadApps() {
+        allApps.clear();
+        allApps.addAll(NotificationAppConfig.getInstalledApps(this));
     }
 
     private void renderAppSwitches() {

@@ -32,6 +32,22 @@
                 android:text="Bat/tat tung app duoc phep parse notification cho HUD."
                 android:textColor="#666666" />
 
+            <TextView
+                android:id="@+id/txtVisibilityHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Neu thay thieu app: Android co gioi han package visibility. Bam Reload de quet lai danh sach."
+                android:textColor="#666666"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btnReloadApps"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Reload app list" />
+
             <EditText
                 android:id="@+id/edtSearch"
                 android:layout_width="match_parent"

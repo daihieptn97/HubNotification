@@ -51,6 +51,22 @@
                 android:layout_marginTop="8dp"
                 android:text="BLE: idle" />
 
+            <TextView
+                android:id="@+id/txtBleConnectedStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="BLE connected: NO" />
+
+            <TextView
+                android:id="@+id/txtBleTimeline"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:fontFamily="monospace"
+                android:text="No BLE events yet."
+                android:textSize="12sp" />
+
             <Button
                 android:id="@+id/btnRequestPermissions"
                 android:layout_width="match_parent"
@@ -78,6 +94,20 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="Open Notification Debug Logs" />
+
+            <Button
+                android:id="@+id/btnOpenLogManager"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Open Log Manager" />
+
+            <Button
+                android:id="@+id/btnOpenNavTest"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Open NAV Test Screen" />
 
             <Button
                 android:id="@+id/btnStartHud"

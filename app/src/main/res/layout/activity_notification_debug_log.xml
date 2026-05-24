@@ -8,31 +8,77 @@
         android:id="@+id/topActions"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:padding="12dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <Button
-            android:id="@+id/btnRefreshLogs"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Refresh" />
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnRefreshLogs"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Refresh" />
+
+            <Button
+                android:id="@+id/btnClearLogs"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="Clear" />
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/edtPayload"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="Paste JSON payload to send"
+            android:inputType="textMultiLine"
+            android:maxLines="3"
+            android:minLines="2" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnResendLast"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Resend Last" />
+
+            <Button
+                android:id="@+id/btnSendPayload"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="Send JSON" />
+        </LinearLayout>
 
         <Button
-            android:id="@+id/btnClearLogs"
-            android:layout_width="0dp"
+            android:id="@+id/btnStopHudFromDebug"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_weight="1"
-            android:text="Clear" />
+            android:layout_marginTop="8dp"
+            android:text="Stop HUD + BLE" />
     </LinearLayout>
 
-    <ScrollView
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:orientation="vertical"
         android:padding="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -40,11 +86,33 @@
         app:layout_constraintTop_toBottomOf="@id/topActions">
 
         <TextView
-            android:id="@+id/txtLogs"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="monospace"
-            android:textSize="12sp" />
-    </ScrollView>
+            android:text="Recent TX JSON (tap to resend)"
+            android:textStyle="bold" />
+
+        <ListView
+            android:id="@+id/listRecentTx"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="6dp"
+            android:layout_weight="1"
+            android:dividerHeight="6dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Notification Logs"
+            android:textStyle="bold" />
+
+        <ListView
+            android:id="@+id/listNotificationLogs"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="6dp"
+            android:layout_weight="1"
+            android:dividerHeight="6dp" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -13,7 +13,10 @@ public final class CarHudConstants {
     public static final String ACTION_START_HUD = "com.hieptran.hubnotification.action.START_HUD";
     public static final String ACTION_STOP_HUD = "com.hieptran.hubnotification.action.STOP_HUD";
     public static final String ACTION_SEND_TEST_NAV = "com.hieptran.hubnotification.action.SEND_TEST_NAV";
+    public static final String ACTION_SEND_TEST_PAYLOAD = "com.hieptran.hubnotification.action.SEND_TEST_PAYLOAD";
 
     public static final String ACTION_STATUS_UPDATE = "com.hieptran.hubnotification.action.STATUS_UPDATE";
     public static final String EXTRA_BLE_STATUS = "extra_ble_status";
+    public static final String EXTRA_BLE_CONNECTED = "extra_ble_connected";
+    public static final String EXTRA_TEST_PAYLOAD = "extra_test_payload";
 }

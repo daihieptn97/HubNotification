@@ -17,4 +17,12 @@
     <color name="success">#FF4CAF50</color>
     <color name="error">#FFF44336</color>
     <color name="warning">#FFFF9800</color>
+    <color name="screen_bg">#FFF4F7F5</color>
+    <color name="surface">#FFFFFFFF</color>
+    <color name="surface_tint">#FFEAF3EE</color>
+    <color name="stroke">#FFD9E2DC</color>
+    <color name="text_primary">#FF18211C</color>
+    <color name="text_muted">#FF64736A</color>
+    <color name="hud_green">#FF1D8F5A</color>
+    <color name="hud_amber">#FFE28A22</color>
 </resources>

@@ -8,6 +8,7 @@ Android app nhan notification (Google Maps, cuoc goi, tin nhan), lay speed/clock
 - Gui JSON theo schema thong nhat voi firmware docsFw/main.cpp.
 - Duy tri chay nen bang Foreground Service.
 - Cho phep bat/tat tung app nguon notification bang man hinh quan ly va luu vao SharedPreferences.
+- Cho phep doi HUD/normal mode, flip va brightness khi BLE da ready.
 - Danh sach app notification duoc load tu tat ca app da cai tren may.
 - Man hinh app list co tim kiem + filter de xu ly tot khi co nhieu app.
 - Co man hinh debug log de xem raw notification title/text/subText ngay tren app.
@@ -22,6 +23,7 @@ Android app nhan notification (Google Maps, cuoc goi, tin nhan), lay speed/clock
 - GoogleMapsNavParser (parse nav thong bao Maps)
 - CarHudBus (encode JSON va gui)
 - NotificationAppConfig (SharedPreferences cho app filtering)
+- CarHudDisplayConfig (SharedPreferences cho HUD/normal, flip, brightness)
 
 ## 3) Giao thuc BLE
 
@@ -39,6 +41,7 @@ JSON discriminator field la t, gom cac loai:
 - sms: {"t":"sms","f":"Anh","m":"Em o dau"}
 - clk: {"t":"clk","h":14,"m":30}
 - bat: {"t":"bat","p":75}
+- cfg: {"t":"cfg","mode":"hud","flip":"v","br":255,"save":true}
 - clr: {"t":"clr"}
 
 ## 4) Luong chay runtime
@@ -50,6 +53,7 @@ JSON discriminator field la t, gom cac loai:
 5. Listener parse du lieu va goi CarHudBus publish JSON.
 6. BleClient queue payload va ghi vao RX characteristic.
 7. BleClient luu MAC ESP32 vao SharedPreferences sau khi connect thanh cong va uu tien reconnect bang MAC da luu.
+8. Neu da tung BLE ready roi bi disconnect qua 30s, CarHudService tu stop de tat scan/location foreground va tranh ton pin.
 
 ## 5) Man hinh quan ly app notification
 
@@ -87,6 +91,7 @@ GoogleMapsNavParser da ho tro:
 - Action tieng Anh: turn left/right, slight, sharp, u-turn, continue.
 - Action tieng Viet: re trai/phai, quay dau, di thang, tiep tuc (co ca dang co dau va khong dau).
 - Distance pattern rong hon: In 200 m, Sau 200 m, 0.5 km, 500 ft, ...
+- Khoang cach decimal km duoc doi sang met truoc khi gui firmware, vi firmware v3 format lai thanh 1 chu so thap phan.
 - Lay text tu nhieu truong notification: EXTRA_TEXT, EXTRA_BIG_TEXT, EXTRA_TEXT_LINES.
 
 Neu parse duoc action + street nhung khong ro distance, he thong van gui nav voi distance = 0 de HUD cap nhat huong re.

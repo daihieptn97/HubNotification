@@ -14,9 +14,16 @@ public final class CarHudConstants {
     public static final String ACTION_STOP_HUD = "com.hieptran.hubnotification.action.STOP_HUD";
     public static final String ACTION_SEND_TEST_NAV = "com.hieptran.hubnotification.action.SEND_TEST_NAV";
     public static final String ACTION_SEND_TEST_PAYLOAD = "com.hieptran.hubnotification.action.SEND_TEST_PAYLOAD";
+    public static final String ACTION_SEND_DISPLAY_CONFIG = "com.hieptran.hubnotification.action.SEND_DISPLAY_CONFIG";
+    public static final String ACTION_REQUEST_STATUS = "com.hieptran.hubnotification.action.REQUEST_STATUS";
 
     public static final String ACTION_STATUS_UPDATE = "com.hieptran.hubnotification.action.STATUS_UPDATE";
     public static final String EXTRA_BLE_STATUS = "extra_ble_status";
     public static final String EXTRA_BLE_CONNECTED = "extra_ble_connected";
+    public static final String EXTRA_BLE_READY = "extra_ble_ready";
+    public static final String EXTRA_HUD_RUNNING = "extra_hud_running";
     public static final String EXTRA_TEST_PAYLOAD = "extra_test_payload";
+    public static final String EXTRA_DISPLAY_MODE = "extra_display_mode";
+    public static final String EXTRA_DISPLAY_FLIP = "extra_display_flip";
+    public static final String EXTRA_DISPLAY_BRIGHTNESS = "extra_display_brightness";
 }

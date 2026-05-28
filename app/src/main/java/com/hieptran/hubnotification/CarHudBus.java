@@ -66,6 +66,19 @@ public final class CarHudBus {
         sendRaw("{\"t\":\"bat\",\"p\":" + pct + "}");
     }
 
+    public static void publishDisplayConfig(boolean hudMode, String flip, int brightness) {
+        JSONObject json = new JSONObject();
+        try {
+            json.put("t", "cfg");
+            json.put("mode", hudMode ? CarHudDisplayConfig.MODE_HUD : CarHudDisplayConfig.MODE_NORMAL);
+            json.put("flip", CarHudDisplayConfig.sanitizeFlip(flip));
+            json.put("br", CarHudDisplayConfig.clampBrightness(brightness));
+            json.put("save", true);
+            sendRaw(json.toString());
+        } catch (JSONException ignored) {
+        }
+    }
+
     public static void publishClear() {
         sendRaw("{\"t\":\"clr\"}");
     }

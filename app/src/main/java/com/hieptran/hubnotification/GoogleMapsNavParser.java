@@ -25,13 +25,13 @@ public final class GoogleMapsNavParser {
         }
     }
 
-        private static final Pattern DISTANCE_PATTERN =
+    private static final Pattern DISTANCE_PATTERN =
             Pattern.compile("(?:in|sau|after)?\\s*(\\d+(?:[.,]\\d+)?)\\s*(km|m|mi|ft|met|meter|meters)", Pattern.CASE_INSENSITIVE);
 
     private static final LinkedHashMap<Pattern, String> ACTION_PATTERNS = new LinkedHashMap<>();
-        private static final Pattern NOW_PATTERN =
+    private static final Pattern NOW_PATTERN =
             Pattern.compile("\\b(now|bay gio|ngay bay gio)\\b", Pattern.CASE_INSENSITIVE);
-        private static final Pattern STRIP_PUNCTUATION = Pattern.compile("[.:,;!?]$");
+    private static final Pattern STRIP_PUNCTUATION = Pattern.compile("[.:,;!?]$");
 
     static {
         ACTION_PATTERNS.put(Pattern.compile("turn right", Pattern.CASE_INSENSITIVE), "right");
@@ -175,13 +175,13 @@ public final class GoogleMapsNavParser {
 
     private static DistResult normalizeDistance(float value, String unit) {
         if ("km".equals(unit)) {
-            return new DistResult(Math.max(0, Math.round(value)), "km");
+            return new DistResult(Math.max(0, Math.round(value * 1000f)), "m");
         }
         if ("m".equals(unit) || "met".equals(unit) || "meter".equals(unit) || "meters".equals(unit)) {
             return new DistResult(Math.max(0, Math.round(value)), "m");
         }
         if ("mi".equals(unit)) {
-            return new DistResult(Math.max(0, Math.round(value * 1.609f)), "km");
+            return new DistResult(Math.max(0, Math.round(value * 1609.344f)), "m");
         }
         if ("ft".equals(unit)) {
             return new DistResult(Math.max(0, Math.round(value * 0.305f)), "m");

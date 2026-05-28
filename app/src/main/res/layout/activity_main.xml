@@ -5,12 +5,14 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/screen_bg"
     tools:context=".MainActivity">
 
     <ScrollView
         android:id="@+id/scrollRoot"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:fillViewport="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -22,114 +24,427 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <TextView
-                android:id="@+id/txtTitle"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Car HUD Companion"
-                android:textSize="24sp"
-                android:textStyle="bold" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/txtPermissionStatus"
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/txtTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Car HUD"
+                        android:textColor="@color/text_primary"
+                        android:textSize="28sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="ESP32 BLE companion"
+                        android:textColor="@color/text_muted"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/txtBleChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/status_chip_background"
+                    android:paddingStart="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="6dp"
+                    android:text="OFFLINE"
+                    android:textColor="@color/text_muted"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                app:cardBackgroundColor="@color/surface"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/stroke"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Connection"
+                        android:textColor="@color/text_primary"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/txtConnectionProgress"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Service is stopped"
+                        android:textColor="@color/text_muted"
+                        android:textSize="13sp" />
+
+                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                        android:id="@+id/connectionProgressBar"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:indeterminate="true"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/txtBleStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="BLE: idle"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/txtBleConnectedStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="BLE connected: NO"
+                        android:textColor="@color/text_muted"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/txtBleTimeline"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/log_panel_background"
+                        android:fontFamily="monospace"
+                        android:padding="12dp"
+                        android:text="No BLE events yet."
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnStartHud"
+                            android:layout_width="0dp"
+                            android:layout_height="48dp"
+                            android:layout_weight="1"
+                            android:text="Start Service" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnStopHud"
+                            style="?attr/materialButtonOutlinedStyle"
+                            android:layout_width="0dp"
+                            android:layout_height="48dp"
+                            android:layout_marginStart="10dp"
+                            android:layout_weight="1"
+                            android:text="Stop" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:text="Runtime permissions: checking..." />
+                app:cardBackgroundColor="@color/surface"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/stroke"
+                app:strokeWidth="1dp">
 
-            <TextView
-                android:id="@+id/txtNotificationAccessStatus"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Display"
+                        android:textColor="@color/text_primary"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/txtDisplayConfigHint"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Display config: waiting for BLE ready"
+                        android:textColor="@color/text_muted"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:text="Mode"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/toggleHudMode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        app:selectionRequired="true"
+                        app:singleSelection="true">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnModeNormal"
+                            style="?attr/materialButtonOutlinedStyle"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_weight="1"
+                            android:text="Normal" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnModeHud"
+                            style="?attr/materialButtonOutlinedStyle"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_weight="1"
+                            android:text="HUD" />
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:text="HUD flip"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/toggleFlip"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        app:selectionRequired="true"
+                        app:singleSelection="true">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnFlipVertical"
+                            style="?attr/materialButtonOutlinedStyle"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_weight="1"
+                            android:text="V" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnFlipHorizontal"
+                            style="?attr/materialButtonOutlinedStyle"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_weight="1"
+                            android:text="H" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnFlipRotate180"
+                            style="?attr/materialButtonOutlinedStyle"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_weight="1"
+                            android:text="180" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnFlipNone"
+                            style="?attr/materialButtonOutlinedStyle"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_weight="1"
+                            android:text="None" />
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Brightness"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/txtBrightnessValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="255 / 255"
+                            android:textColor="@color/text_muted"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
+                    <com.google.android.material.slider.Slider
+                        android:id="@+id/sliderBrightness"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:value="255"
+                        android:valueFrom="0"
+                        android:valueTo="255"
+                        android:stepSize="1" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Notification access: checking..." />
+                android:layout_marginTop="12dp"
+                app:cardBackgroundColor="@color/surface"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/stroke"
+                app:strokeWidth="1dp">
 
-            <TextView
-                android:id="@+id/txtBleStatus"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Access"
+                        android:textColor="@color/text_primary"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/txtPermissionStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Runtime permissions: checking..."
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/txtNotificationAccessStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Notification access: checking..."
+                        android:textColor="@color/text_muted"
+                        android:textSize="14sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnRequestPermissions"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="12dp"
+                        android:text="Runtime Permissions" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnOpenNotificationAccess"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="8dp"
+                        android:text="Notification Access" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="BLE: idle" />
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="18dp"
+                app:cardBackgroundColor="@color/surface"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/stroke"
+                app:strokeWidth="1dp">
 
-            <TextView
-                android:id="@+id/txtBleConnectedStatus"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="BLE connected: NO" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-            <TextView
-                android:id="@+id/txtBleTimeline"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:fontFamily="monospace"
-                android:text="No BLE events yet."
-                android:textSize="12sp" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Tools"
+                        android:textColor="@color/text_primary"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/btnRequestPermissions"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Request Runtime Permissions" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnManageNotificationApps"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="12dp"
+                        android:text="Notification Sources" />
 
-            <Button
-                android:id="@+id/btnOpenNotificationAccess"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Open Notification Access Settings" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnOpenDebugLogs"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="8dp"
+                        android:text="Notification Debug" />
 
-            <Button
-                android:id="@+id/btnManageNotificationApps"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Manage Notification Apps" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnOpenLogManager"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="8dp"
+                        android:text="Log Manager" />
 
-            <Button android:visibility="gone"
-                android:id="@+id/btnOpenDebugLogs"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Open Notification Debug Logs" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnOpenNavTest"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="8dp"
+                        android:text="NAV Test" />
 
-            <Button
-                android:id="@+id/btnOpenLogManager"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Open Log Manager" />
-
-            <Button
-                android:id="@+id/btnOpenNavTest"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Open NAV Test Screen" />
-
-            <Button
-                android:id="@+id/btnStartHud"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="Start HUD Service" />
-
-            <Button
-                android:id="@+id/btnStopHud"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Stop HUD Service" />
-
-            <Button
-                android:id="@+id/btnSendTestNav"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="Send Test NAV JSON" />
-
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSendTestNav"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="12dp"
+                        android:text="Send Test NAV" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </ScrollView>
 

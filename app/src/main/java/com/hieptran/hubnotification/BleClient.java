@@ -42,6 +42,7 @@ public class BleClient {
     private static final String TAG = "BleClient";
     private static final String PREF_BLE = "car_hud_ble";
     private static final String KEY_LAST_MAC = "last_mac";
+    private static final long DIRECT_CONNECT_TIMEOUT_MS = 3_500L;
 
     private static final UUID SERVICE_UUID = UUID.fromString(CarHudConstants.SERVICE_UUID);
     private static final UUID RX_UUID = UUID.fromString(CarHudConstants.CHAR_RX_UUID);
@@ -69,6 +70,7 @@ public class BleClient {
     @SuppressLint("MissingPermission")
     public void start() {
         started = true;
+        notifyStatus("BLE: preparing Bluetooth");
         if (!hasBluetoothRuntimePermission()) {
             notifyStatus("BLE: missing BLUETOOTH permissions");
             return;
@@ -93,12 +95,7 @@ public class BleClient {
         }
 
         if (tryConnectSavedDevice(adapter)) {
-            // Fallback to scan if direct reconnect cannot establish quickly.
-            mainHandler.postDelayed(() -> {
-                if (started && gatt == null && !isScanning) {
-                    startScanInternal();
-                }
-            }, 3500L);
+            scheduleConnectFallback("saved device timeout");
             return;
         }
 
@@ -108,13 +105,9 @@ public class BleClient {
     @SuppressLint("MissingPermission")
     public void stop() {
         started = false;
+        notifyStatus("BLE: stopping BLE client");
         stopScanInternal();
-
-        if (gatt != null) {
-            gatt.disconnect();
-            gatt.close();
-            gatt = null;
-        }
+        closeGatt();
 
         rxCharacteristic = null;
         connectedDevice = null;
@@ -163,9 +156,15 @@ public class BleClient {
                 .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
                 .build();
 
-        scanner.startScan(Collections.singletonList(filter), settings, scanCallback);
-        isScanning = true;
-        notifyStatus("BLE: scanning CarHUD-ESP32");
+        try {
+            scanner.startScan(Collections.singletonList(filter), settings, scanCallback);
+            isScanning = true;
+            notifyStatus("BLE: scanning CarHUD-ESP32");
+        } catch (SecurityException ex) {
+            notifyStatus("BLE: scan failed, missing permission");
+        } catch (IllegalStateException ex) {
+            notifyStatus("BLE: scan failed");
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -173,24 +172,39 @@ public class BleClient {
         if (!isScanning || scanner == null) {
             return;
         }
-        scanner.stopScan(scanCallback);
+        try {
+            scanner.stopScan(scanCallback);
+        } catch (SecurityException ex) {
+            notifyStatus("BLE: stop scan failed, missing permission");
+        } catch (IllegalStateException ex) {
+            notifyStatus("BLE: stop scan failed");
+        }
         isScanning = false;
     }
 
     @SuppressLint("MissingPermission")
     private void connect(BluetoothDevice device) {
         stopScanInternal();
-        if (gatt != null) {
-            gatt.close();
-            gatt = null;
-        }
-        notifyStatus("BLE: connecting " + (device.getName() == null ? "device" : device.getName()));
+        closeGatt();
+        notifyStatus("BLE: connecting " + getDeviceLabel(device));
         connectedDevice = device;
         gatt = device.connectGatt(appContext, false, gattCallback, BluetoothDevice.TRANSPORT_LE);
+        if (gatt == null) {
+            connectedDevice = null;
+            notifyStatus("BLE: connectGatt failed, scanning");
+            startScanInternal();
+        } else {
+            scheduleConnectFallback("connect timeout");
+        }
     }
 
     private void notifyStatus(String text) {
-        statusListener.onStatusChanged(text);
+        Log.d(TAG, "STATUS " + text);
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            statusListener.onStatusChanged(text);
+        } else {
+            mainHandler.post(() -> statusListener.onStatusChanged(text));
+        }
     }
 
     private void scheduleReconnect() {
@@ -202,15 +216,64 @@ public class BleClient {
                 return;
             }
             if (bluetoothAdapter != null && tryConnectSavedDevice(bluetoothAdapter)) {
-                mainHandler.postDelayed(() -> {
-                    if (started && gatt == null && !isScanning) {
-                        startScanInternal();
-                    }
-                }, 3500L);
+                scheduleConnectFallback("saved device retry timeout");
                 return;
             }
             startScanInternal();
         }, 2000L);
+    }
+
+    private void scheduleConnectFallback(String reason) {
+        mainHandler.postDelayed(() -> {
+            if (!started || rxCharacteristic != null || isScanning) {
+                return;
+            }
+            notifyStatus("BLE: " + reason + ", scanning");
+            closeGatt();
+            startScanInternal();
+        }, DIRECT_CONNECT_TIMEOUT_MS);
+    }
+
+    @SuppressLint("MissingPermission")
+    private void recoverToScan(String reason) {
+        if (!started) {
+            return;
+        }
+        notifyStatus("BLE: " + reason + ", scanning");
+        closeGatt();
+        startScanInternal();
+    }
+
+    @SuppressLint("MissingPermission")
+    private void closeGatt() {
+        BluetoothGatt localGatt = gatt;
+        gatt = null;
+        rxCharacteristic = null;
+        writeInFlight = false;
+        if (localGatt == null) {
+            return;
+        }
+        try {
+            localGatt.disconnect();
+        } catch (SecurityException ignored) {
+        }
+        try {
+            localGatt.close();
+        } catch (Exception ignored) {
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private String getDeviceLabel(BluetoothDevice device) {
+        if (device == null) {
+            return "device";
+        }
+        try {
+            String name = device.getName();
+            return TextUtils.isEmpty(name) ? device.getAddress() : name;
+        } catch (SecurityException ex) {
+            return "device";
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -258,7 +321,9 @@ public class BleClient {
             if (device == null) {
                 return;
             }
-            if (device.getName() != null && device.getName().equals(CarHudConstants.DEVICE_NAME)) {
+            String advertisedName = result.getScanRecord() == null ? null : result.getScanRecord().getDeviceName();
+            if (CarHudConstants.DEVICE_NAME.equals(getDeviceLabel(device))
+                    || CarHudConstants.DEVICE_NAME.equals(advertisedName)) {
                 stopScanInternal();
                 connect(device);
             }
@@ -275,39 +340,64 @@ public class BleClient {
         @Override
         public void onConnectionStateChange(BluetoothGatt g, int status, int newState) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
+                if (!started) {
+                    return;
+                }
+                if (status != BluetoothGatt.GATT_SUCCESS) {
+                    notifyStatus("BLE: connect failed " + status + ", retrying");
+                    closeGatt();
+                    scheduleReconnect();
+                    return;
+                }
                 saveDeviceMac(g.getDevice() == null ? null : g.getDevice().getAddress());
                 notifyStatus("BLE: connected, requesting MTU 247");
-                g.requestMtu(247);
+                if (!g.requestMtu(247)) {
+                    notifyStatus("BLE: MTU request failed, discovering services");
+                    g.discoverServices();
+                }
                 return;
             }
             if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                if (!started) {
+                    return;
+                }
                 notifyStatus("BLE: disconnected, retrying");
                 rxCharacteristic = null;
                 writeInFlight = false;
-                if (gatt != null) {
-                    gatt.close();
-                    gatt = null;
-                }
+                closeGatt();
                 scheduleReconnect();
             }
         }
 
         @Override
         public void onMtuChanged(BluetoothGatt g, int mtu, int status) {
+            if (!started) {
+                return;
+            }
             notifyStatus("BLE: MTU=" + mtu + ", discovering services");
-            g.discoverServices();
+            if (!g.discoverServices()) {
+                recoverToScan("service discovery failed");
+            }
         }
 
         @Override
         public void onServicesDiscovered(BluetoothGatt g, int status) {
+            if (!started) {
+                return;
+            }
+            notifyStatus("BLE: services discovered status=" + status);
+            if (status != BluetoothGatt.GATT_SUCCESS) {
+                recoverToScan("service discovery failed " + status);
+                return;
+            }
             BluetoothGattService service = g.getService(SERVICE_UUID);
             if (service == null) {
-                notifyStatus("BLE: service not found");
+                recoverToScan("service not found");
                 return;
             }
             rxCharacteristic = service.getCharacteristic(RX_UUID);
             if (rxCharacteristic == null) {
-                notifyStatus("BLE: RX characteristic not found");
+                recoverToScan("RX characteristic not found");
                 return;
             }
             notifyStatus("BLE: ready");
@@ -316,6 +406,9 @@ public class BleClient {
 
         @Override
         public void onCharacteristicWrite(BluetoothGatt g, BluetoothGattCharacteristic characteristic, int status) {
+            if (!started) {
+                return;
+            }
             writeInFlight = false;
             flushQueue();
         }

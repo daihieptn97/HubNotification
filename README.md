@@ -7,6 +7,7 @@ Android app nhan notification (Google Maps, cuoc goi, tin nhan), lay speed/clock
 - Ket noi toi ESP32 co ten CarHUD-ESP32.
 - Gui JSON theo schema thong nhat voi firmware docsFw/main.cpp.
 - Duy tri chay nen bang Foreground Service.
+- Hien thi trang thai ket noi BLE theo thoi gian thuc (starting/scanning/connecting/ready/stopping/stopped).
 - Cho phep bat/tat tung app nguon notification bang man hinh quan ly va luu vao SharedPreferences.
 - Cho phep doi HUD/normal mode, flip va brightness khi BLE da ready.
 - Danh sach app notification duoc load tu tat ca app da cai tren may.
@@ -24,6 +25,7 @@ Android app nhan notification (Google Maps, cuoc goi, tin nhan), lay speed/clock
 - CarHudBus (encode JSON va gui)
 - NotificationAppConfig (SharedPreferences cho app filtering)
 - CarHudDisplayConfig (SharedPreferences cho HUD/normal, flip, brightness)
+- CarHudRuntimeStatus (snapshot + listener in-process cho BLE state)
 
 ## 3) Giao thuc BLE
 
@@ -48,12 +50,49 @@ JSON discriminator field la t, gom cac loai:
 
 1. User cap runtime permissions + Notification Access.
 2. Start HUD Service tu MainActivity.
-3. CarHudService khoi tao BleClient, request location updates, push clock/battery dinh ky.
-4. CarHudNotificationListener nhan notification he thong.
-5. Listener parse du lieu va goi CarHudBus publish JSON.
-6. BleClient queue payload va ghi vao RX characteristic.
-7. BleClient luu MAC ESP32 vao SharedPreferences sau khi connect thanh cong va uu tien reconnect bang MAC da luu.
-8. Neu da tung BLE ready roi bi disconnect qua 30s, CarHudService tu stop de tat scan/location foreground va tranh ton pin.
+3. MainActivity set local state "start requested", disable spam tap Start, hien loading.
+4. CarHudService start foreground, khoi tao BleClient, request location updates, push clock/battery dinh ky.
+5. BleClient uu tien direct reconnect bang MAC da luu; neu timeout thi fallback scan.
+6. Khi connect thanh cong: request MTU 247 -> discover services -> tim RX characteristic -> status "BLE: ready".
+7. CarHudNotificationListener nhan notification he thong, parse, goi CarHudBus publish JSON.
+8. BleClient queue payload va ghi vao RX characteristic.
+9. MainActivity nhan status qua broadcast + CarHudRuntimeStatus listener de cap nhat chip/progress theo realtime.
+10. Neu da tung BLE ready roi bi disconnect qua 30s, CarHudService tu stop de tat scan/location foreground va tranh ton pin.
+
+### 4.1) Status pipeline (Main screen)
+
+Trang thai co the thay tren MainActivity:
+
+- BLE: start requested
+- BLE: starting HUD service
+- BLE: preparing Bluetooth
+- BLE: try saved device <MAC>
+- BLE: connecting <device>
+- BLE: connected, requesting MTU 247
+- BLE: MTU=247, discovering services
+- BLE: services discovered status=0
+- BLE: ready
+- BLE: stopping HUD service
+- BLE: stopping BLE client
+- BLE: stopped
+
+Trang thai fallback / loi duoc xu ly:
+
+- BLE: saved device timeout, scanning
+- BLE: connect timeout, scanning
+- BLE: service discovery failed ..., scanning
+- BLE: service not found, scanning
+- BLE: RX characteristic not found, scanning
+- BLE: disconnected, retrying
+
+### 4.2) Status transport trong app (internal)
+
+- Broadcast action: `ACTION_STATUS_UPDATE`
+- `EXTRA_BLE_STATUS` (string)
+- `EXTRA_BLE_CONNECTED` (boolean)
+- `EXTRA_BLE_READY` (boolean)
+- `EXTRA_HUD_RUNNING` (boolean)
+- Snapshot request action: `ACTION_REQUEST_STATUS` (MainActivity goi khi onStart/onResume neu service dang run)
 
 ## 5) Man hinh quan ly app notification
 
@@ -112,6 +151,10 @@ Build debug:
 
 ./gradlew :app:assembleDebug
 
+Logcat nhanh de debug BLE state:
+
+adb logcat -s BleClient CarHudService MainActivity BluetoothGatt
+
 ## 9) File map nhanh
 
 - app/src/main/java/com/hieptran/hubnotification/MainActivity.java
@@ -122,6 +165,7 @@ Build debug:
 - app/src/main/java/com/hieptran/hubnotification/BleClient.java
 - app/src/main/java/com/hieptran/hubnotification/GoogleMapsNavParser.java
 - app/src/main/java/com/hieptran/hubnotification/CarHudBus.java
+- app/src/main/java/com/hieptran/hubnotification/CarHudRuntimeStatus.java
 - docsFw/main.cpp
 - docsFw/Android tech spec.md
 
